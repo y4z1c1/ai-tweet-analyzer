@@ -8,7 +8,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, authorName, mediaText } = await request.json()
+    const { text, authorName } = await request.json()
     
     if (!text) {
       return NextResponse.json(
@@ -24,15 +24,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // build complete content including media text
-    let completeContent = `Tweet by ${authorName || 'Unknown'}:\n"${text}"`
-    
-    if (mediaText && mediaText.trim()) {
-      completeContent += `\n\nMedia content (extracted text from images/videos):\n${mediaText}`
-    }
+    // build content for analysis
+    const completeContent = `Tweet by ${authorName || 'Unknown'}:\n"${text}"`
 
-    // prompt for gpt-4o-mini to analyze tweet including media
-    const prompt = `Analyze this tweet (including any media content) and provide:
+    // prompt for gpt-4o-mini to analyze tweet
+    const prompt = `Analyze this tweet and provide:
 1. A brief summary (1-2 sentences) 
 2. Overall sentiment (positive, negative, or neutral)
 
@@ -49,7 +45,7 @@ Please respond in this exact JSON format:
       messages: [
         {
           role: "system",
-          content: "You are an expert at analyzing social media content for sentiment and summarization. Consider both the main text and any extracted text from images/videos. Always respond with valid JSON in the exact format requested."
+          content: "You are an expert at analyzing social media content for sentiment and summarization. Always respond with valid JSON in the exact format requested."
         },
         {
           role: "user", 

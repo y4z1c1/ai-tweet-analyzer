@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateTweetUrl, normalizeTweetUrl, cleanTweetUrl } from '@/lib/utils'
-import { analyzeMediaContent } from '@/lib/media-extractor'
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,8 +42,10 @@ export async function POST(request: NextRequest) {
 
     const oembedData = await response.json()
     
-    // analyze media content and extract text
-    const mediaAnalysis = await analyzeMediaContent(oembedData.html)
+    console.log('oembed response data:')
+    console.log('- author_name:', oembedData.author_name)
+    console.log('- url:', oembedData.url)
+    console.log('- html length:', oembedData.html?.length)
     
     // extract useful info from oembed response
     const tweetData = {
@@ -52,13 +53,10 @@ export async function POST(request: NextRequest) {
       authorName: oembedData.author_name,
       authorUrl: oembedData.author_url,
       url: oembedData.url,
-      // extract text content from html (simple approach)
+      // extract text content from html
       text: extractTextFromHtml(oembedData.html),
       width: oembedData.width,
-      height: oembedData.height,
-      // add media analysis results
-      mediaContent: mediaAnalysis.mediaItems,
-      mediaText: mediaAnalysis.combinedText
+      height: oembedData.height
     }
 
     return NextResponse.json({
@@ -77,16 +75,59 @@ export async function POST(request: NextRequest) {
 
 // helper function to extract text from html
 function extractTextFromHtml(html: string): string {
-  // remove html tags and decode entities
+  // first try to find the actual tweet text in a more structured way
+  // twitter oembed often contains the tweet text in specific patterns
+  
+  // look for the main tweet content in blockquote
+  const blockquoteMatch = html.match(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/i)
+  
+  if (blockquoteMatch) {
+    let tweetText = blockquoteMatch[1]
+    
+    // remove links (like pic.twitter.com links)
+    tweetText = tweetText.replace(/<a[^>]*>.*?<\/a>/gi, '')
+    
+    // remove the author info and date (usually at the end)
+    // pattern: &mdash; AuthorName (@username) Date
+    tweetText = tweetText.replace(/&mdash;[\s\S]*?$/i, '')
+    
+    // remove any remaining html tags
+    tweetText = tweetText.replace(/<[^>]*>/g, '')
+    
+    // decode html entities properly
+    tweetText = tweetText
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&apos;/g, "'")
+    
+    // clean up whitespace
+    tweetText = tweetText
+      .replace(/\s+/g, ' ')
+      .trim()
+    
+    console.log('extracted clean tweet text:', tweetText)
+    return tweetText
+  }
+  
+  // fallback to previous method if blockquote method fails
   const textContent = html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // remove scripts
     .replace(/<[^>]*>/g, '') // remove html tags
     .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&nbsp;/g, ' ')
+    .replace(/&apos;/g, "'")
     .trim()
   
+  console.log('extracted tweet text (fallback):', textContent)
   return textContent
 } 

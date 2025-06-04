@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { TweetData, TweetApiResponse } from '@/types/tweet'
 import { AnalysisResult, AnalysisApiResponse } from '@/types/analysis'
@@ -12,28 +12,6 @@ export default function Home() {
   const [tweetData, setTweetData] = useState<TweetData | null>(null)
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  // load twitter widgets script when tweet data is available
-  useEffect(() => {
-    if (tweetData && typeof window !== 'undefined') {
-      // load twitter widgets script if not already loaded
-      if (!window.twttr) {
-        const script = document.createElement('script')
-        script.src = 'https://platform.twitter.com/widgets.js'
-        script.async = true
-        script.onload = () => {
-          // process widgets after script loads
-          if (window.twttr?.widgets) {
-            window.twttr.widgets.load()
-          }
-        }
-        document.body.appendChild(script)
-      } else {
-        // if script already loaded, just process widgets
-        window.twttr.widgets.load()
-      }
-    }
-  }, [tweetData, analysis])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,8 +46,7 @@ export default function Home() {
           },
           body: JSON.stringify({ 
             text: data.tweet.text,
-            authorName: data.tweet.authorName,
-            mediaText: data.tweet.mediaText
+            authorName: data.tweet.authorName
           }),
         })
 
@@ -92,6 +69,13 @@ export default function Home() {
     }
   }
 
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e as any)
+    }
+  }
+
   // helper function to get sentiment color
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -102,48 +86,152 @@ export default function Home() {
     }
   }
 
+  // custom tweet component
+  const TweetDisplay = ({ tweet }: { tweet: TweetData }) => {
+    // extract date from tweet url (tweet id contains timestamp info)
+    const getTweetDate = () => {
+      try {
+        const tweetId = tweet.url.match(/status\/(\d+)/)?.[1]
+        if (tweetId) {
+          // twitter snowflake ids contain timestamp
+          // extract first 41 bits and convert to timestamp
+          const timestamp = (BigInt(tweetId) >> BigInt(22)) + BigInt(1288834974657)
+          return new Date(Number(timestamp))
+        }
+      } catch (error) {
+        console.error('error extracting date from tweet id:', error)
+      }
+      return new Date() // fallback to current date
+    }
+
+    const tweetDate = getTweetDate()
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }) + ' at ' + date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      })
+    }
+
+    // generate username from author name
+    const generateUsername = (authorName: string) => {
+      return '@' + authorName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
+    }
+
+    return (
+      <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+        {/* tweet header */}
+        <div className="flex items-start space-x-3 mb-4">
+          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-lg">
+              {tweet.authorName.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div className="flex-1">
+            <h4 className="text-white font-semibold">{tweet.authorName}</h4>
+            <p className="text-gray-400 text-sm">{generateUsername(tweet.authorName)}</p>
+          </div>
+        </div>
+
+        {/* tweet content */}
+        <div className="mb-4">
+          <p className="text-white text-lg leading-relaxed">{tweet.text}</p>
+        </div>
+
+        {/* date and time */}
+        <div className="mb-4 text-gray-400 text-sm">
+          {formatDate(tweetDate)}
+        </div>
+
+        {/* ai analysis section */}
+        {isAnalyzing && (
+          <div className="border-t border-gray-700 pt-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+              <p className="text-blue-200 font-medium">analyzing with ai...</p>
+            </div>
+          </div>
+        )}
+
+        {analysis && (
+          <div className="border-t border-gray-700 pt-4">
+            <h4 className="text-white font-semibold mb-4">✨ ai analysis:</h4>
+            
+            <div className="space-y-4">
+              {/* sentiment */}
+              <div>
+                <h5 className="text-gray-400 text-sm mb-2">sentiment:</h5>
+                <span className={`font-semibold text-lg ${getSentimentColor(analysis.sentiment)}`}>
+                  {analysis.sentiment}
+                </span>
+              </div>
+
+              {/* summary */}
+              <div>
+                <h5 className="text-gray-400 text-sm mb-2">summary:</h5>
+                <p className="text-white bg-gray-800 p-3 rounded">
+                  {analysis.summary}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
+        {/* header with logo and title side by side */}
         <div className="text-center mb-8">
-          <div className="mb-6">
+          <div className="flex items-center justify-center space-x-4 mb-4">
             <Image
               src="/tweet_analyzer.png"
               alt="Tweet Analyzer Logo"
-              width={80}
-              height={80}
-              className="mx-auto"
+              width={60}
+              height={60}
             />
+            <h1 className="text-2xl font-bold text-white">
+              ai tweet analyzer
+            </h1>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">
-            ai tweet analyzer
-          </h1>
           <p className="text-gray-400 text-sm">
             paste tweet url to analyze with ai
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-          <div>
+        {/* input with search icon */}
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="relative">
             <input
               type="url"
               value={tweetUrl}
               onChange={(e) => setTweetUrl(e.target.value)}
+              onKeyDown={handleInputKeyDown}
               placeholder="https://twitter.com/username/status/... or https://x.com/username/status/..."
-              className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full px-4 py-3 pr-12 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               required
+              disabled={isLoading || isAnalyzing}
             />
+            <button
+              type="submit"
+              disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors"
+            >
+              {isLoading || isAnalyzing ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              )}
+            </button>
           </div>
-          
-          <button
-            type="submit"
-            disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
-          >
-            {isLoading ? 'fetching tweet...' : 
-             isAnalyzing ? 'analyzing with ai...' : 
-             'analyze tweet'}
-          </button>
         </form>
 
         {/* error display */}
@@ -153,83 +241,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* tweet embed display */}
-        {tweetData && (
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 mb-6">
-            <h3 className="text-white font-semibold mb-3 text-center">
-              fetched tweet:
-            </h3>
-            <div 
-              dangerouslySetInnerHTML={{ __html: tweetData.html }}
-              className="flex justify-center [&_blockquote]:max-w-sm [&_blockquote]:mx-auto [&_blockquote]:text-sm"
-              style={{
-                // make embedded tweet smaller
-                transform: 'scale(0.8)',
-                transformOrigin: 'center'
-              }}
-            />
-            
-            {/* show media content if detected */}
-            {tweetData.mediaContent && tweetData.mediaContent.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <h4 className="text-gray-400 text-sm mb-2">
-                  detected media content:
-                </h4>
-                <div className="space-y-2">
-                  {tweetData.mediaContent.map((media, index) => (
-                    <div key={index} className="bg-gray-800 p-3 rounded text-xs">
-                      <span className="text-blue-400 font-medium">
-                        {media.type} {index + 1}:
-                      </span>
-                      {media.extractedText ? (
-                        <p className="text-gray-300 mt-1">"{media.extractedText}"</p>
-                      ) : (
-                        <p className="text-gray-500 mt-1 italic">no text detected</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* analyzing indicator */}
-        {isAnalyzing && (
-          <div className="bg-blue-900/50 border border-blue-500 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-center space-x-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
-              <p className="text-blue-200 font-medium">analyzing tweet + media content with ai...</p>
-            </div>
-          </div>
-        )}
-
-        {/* ai analysis results */}
-        {analysis && (
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-            <h3 className="text-white font-semibold mb-4 text-center">
-              ai analysis results:
-            </h3>
-            
-            <div className="space-y-4">
-              {/* sentiment */}
-              <div>
-                <h4 className="text-gray-400 text-sm mb-2">sentiment:</h4>
-                <span className={`font-semibold text-lg ${getSentimentColor(analysis.sentiment)}`}>
-                  {analysis.sentiment}
-                </span>
-              </div>
-
-              {/* summary */}
-              <div>
-                <h4 className="text-gray-400 text-sm mb-2">summary:</h4>
-                <p className="text-white bg-gray-800 p-3 rounded">
-                  {analysis.summary}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* tweet display with analysis combined */}
+        {tweetData && <TweetDisplay tweet={tweetData} />}
       </div>
     </div>
   )

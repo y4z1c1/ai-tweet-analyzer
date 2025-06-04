@@ -168,10 +168,30 @@ export function extractMediaUrls(html: string): MediaContent[] {
   // also look for data attributes that might contain media urls
   const dataImageRegex = /data-[^=]*=["']([^"']*(?:pbs\.twimg\.com|twimg\.com)[^"']*\.(?:jpg|jpeg|png|gif|webp))[^"']*["']/gi
   
+  // look for pic.twitter.com links in text and extract media hash to construct image urls
+  const picTwitterRegex = /pic\.twitter\.com\/([a-zA-Z0-9]+)/gi
+  
   // look for t.co links that might be media
   const tcoLinkRegex = /<a[^>]+href=["']([^"']*t\.co[^"']*)["'][^>]*>([^<]*pic\.twitter\.com[^<]*)<\/a>/gi
   
+  // new pattern: look for any mention of media ids in the html
+  const mediaIdRegex = /media[_-]?id[s]?[\"']?[:\s=]+[\"']?([0-9]+)/gi
+  
+  // try to extract tweet id from the html to construct media urls
+  const tweetIdRegex = /status\/(\d+)/gi
+  
+  // look for any pbs.twimg.com urls (even without file extensions)
+  const pbsUrlRegex = /https:\/\/pbs\.twimg\.com\/media\/([^"'\s<>?]+)/gi
+  
   let match
+  let tweetId = null
+  
+  // extract tweet id first
+  const tweetIdMatch = tweetIdRegex.exec(html)
+  if (tweetIdMatch) {
+    tweetId = tweetIdMatch[1]
+    console.log('extracted tweet id:', tweetId)
+  }
   
   // extract images
   let imageCount = 0
@@ -220,6 +240,87 @@ export function extractMediaUrls(html: string): MediaContent[] {
     }
   }
   
+  // look for any pbs.twimg.com urls
+  let pbsCount = 0
+  while ((match = pbsUrlRegex.exec(html)) !== null) {
+    pbsCount++
+    const mediaHash = match[1]
+    console.log(`found pbs.twimg.com url ${pbsCount}:`, match[0], 'hash:', mediaHash)
+    
+    // construct full image url
+    const constructedUrl = `https://pbs.twimg.com/media/${mediaHash}?format=jpg&name=large`
+    console.log(`constructed image url from pbs:`, constructedUrl)
+    
+    // avoid duplicates
+    if (!mediaItems.some(item => item.url === constructedUrl || item.url.includes(mediaHash))) {
+      mediaItems.push({
+        type: 'image',
+        url: constructedUrl
+      })
+    }
+  }
+  
+  // look for pic.twitter.com references and try to construct image urls
+  let picCount = 0
+  while ((match = picTwitterRegex.exec(html)) !== null) {
+    picCount++
+    const mediaHash = match[1]
+    console.log(`found pic.twitter.com reference ${picCount}:`, mediaHash)
+    
+    // try to construct direct image url from the hash
+    // twitter often uses predictable patterns for media urls
+    const constructedUrl = `https://pbs.twimg.com/media/${mediaHash}?format=jpg&name=large`
+    console.log(`constructed image url from pic.twitter.com:`, constructedUrl)
+    
+    // avoid duplicates
+    if (!mediaItems.some(item => item.url === constructedUrl || item.url.includes(mediaHash))) {
+      mediaItems.push({
+        type: 'image',
+        url: constructedUrl
+      })
+    }
+  }
+  
+  // look for media ids and try to construct urls
+  let mediaIdCount = 0
+  while ((match = mediaIdRegex.exec(html)) !== null) {
+    mediaIdCount++
+    const mediaId = match[1]
+    console.log(`found media id ${mediaIdCount}:`, mediaId)
+    
+    // construct twitter media url from id
+    const constructedUrl = `https://pbs.twimg.com/media/${mediaId}?format=jpg&name=large`
+    console.log(`constructed image url from media id:`, constructedUrl)
+    
+    // avoid duplicates
+    if (!mediaItems.some(item => item.url === constructedUrl || item.url.includes(mediaId))) {
+      mediaItems.push({
+        type: 'image',
+        url: constructedUrl
+      })
+    }
+  }
+  
+  // if we found a tweet id but no media, try to use twitter api patterns
+  if (tweetId && mediaItems.length === 0) {
+    console.log('no media found with standard methods, trying tweet id construction...')
+    
+    // twitter sometimes uses tweet id as part of media urls
+    const possibleMediaUrls = [
+      `https://pbs.twimg.com/media/${tweetId}?format=jpg&name=large`,
+      `https://pbs.twimg.com/media/${tweetId}.jpg`,
+      `https://pbs.twimg.com/tweet_video_thumb/${tweetId}.jpg`
+    ]
+    
+    for (const url of possibleMediaUrls) {
+      console.log('trying constructed url from tweet id:', url)
+      mediaItems.push({
+        type: 'image',
+        url: url
+      })
+    }
+  }
+  
   // look for t.co links that might be media
   let tcoCount = 0
   while ((match = tcoLinkRegex.exec(html)) !== null) {
@@ -236,9 +337,13 @@ export function extractMediaUrls(html: string): MediaContent[] {
   }
   
   console.log(`extraction summary:`)
+  console.log(`- tweet id: ${tweetId}`)
   console.log(`- direct images: ${imageCount}`)
   console.log(`- video thumbnails: ${videoCount}`)
   console.log(`- data images: ${dataCount}`)
+  console.log(`- pbs urls: ${pbsCount}`)
+  console.log(`- pic.twitter.com refs: ${picCount}`)
+  console.log(`- media ids: ${mediaIdCount}`)
   console.log(`- t.co links: ${tcoCount}`)
   console.log(`total media items found: ${mediaItems.length}`)
   
