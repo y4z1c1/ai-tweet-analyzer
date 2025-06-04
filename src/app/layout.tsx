@@ -1,15 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+// configure sf pro display font
+const sfPro = localFont({
+  src: [
+    {
+      path: '../../public/fonts/sf-pro-display/SFPRODISPLAYREGULAR.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/sf-pro-display/SFPRODISPLAYMEDIUM.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/sf-pro-display/SFPRODISPLAYBOLD.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: "--font-sf-pro",
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -37,7 +50,7 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${sfPro.variable} antialiased`}
       >
         {children}
       </body>

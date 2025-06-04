@@ -301,7 +301,7 @@ export default function Home() {
                 height={60}
                 className="flex-shrink-0 group-hover:rotate-12 transition-transform duration-300"
               />
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent hover:from-blue-500 hover:via-blue-400 hover:to-gray-100 transition-all duration-300"
+              <h1 className="text-3xl sm:text-4xl font-thin bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent hover:from-blue-500 hover:via-blue-400 hover:to-gray-100 transition-all duration-300"
                 style={{
                   backgroundSize: '200% 200%',
                   animation: 'gradient-shift 4s ease-in-out infinite'
