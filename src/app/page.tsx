@@ -13,10 +13,34 @@ export default function Home() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | 'error' | null>(null)
+  const [isShaking, setIsShaking] = useState(false)
+  const [isInvalid, setIsInvalid] = useState(false)
+
+  // validate tweet url function
+  const isValidTweetUrl = (url: string): boolean => {
+    const tweetUrlPattern = /^https?:\/\/(twitter\.com|x\.com)\/\w+\/status\/\d+/i
+    return tweetUrlPattern.test(url.trim())
+  }
+
+  // trigger shake animation and red border
+  const triggerInvalidFeedback = () => {
+    setIsShaking(true)
+    setIsInvalid(true)
+    setTimeout(() => {
+      setIsShaking(false)
+      setIsInvalid(false)
+    }, 500)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!tweetUrl.trim()) return
+    
+    // validate tweet url before proceeding
+    if (!isValidTweetUrl(tweetUrl)) {
+      triggerInvalidFeedback()
+      return
+    }
     
     setIsLoading(true)
     setError(null)
@@ -244,14 +268,25 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+      {/* dot grid background with fade effect */}
+      <div 
+        className="absolute inset-0 opacity-50"
+        style={{
+          backgroundImage: `radial-gradient(circle, rgba(59, 130, 246, 0.6) 1px, transparent 1px)`,
+          backgroundSize: '30px 30px',
+          maskImage: 'radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%)'
+        }}
+      />
+      
       {/* main container with proper padding and responsive design */}
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow">
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow relative z-10">
         {/* main analyzer section with better responsive width */}
         <div className="max-w-2xl mx-auto">
           {/* header with logo and title - smooth transition to top when search is made */}
           <div className={`text-center transition-all duration-700 ease-in-out ${
-            tweetData || error ? 'mb-8' : 'mb-12 min-h-[50vh] flex flex-col justify-center'
+            tweetData ? 'mb-8' : 'mb-12 min-h-[50vh] flex flex-col justify-center'
           }`}>
             <button 
               onClick={handleBackToMain}
@@ -266,24 +301,31 @@ export default function Home() {
                 height={60}
                 className="flex-shrink-0 group-hover:rotate-12 transition-transform duration-300"
               />
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent hover:from-blue-500 hover:via-blue-400 hover:to-gray-100 transition-all duration-300">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent hover:from-blue-500 hover:via-blue-400 hover:to-gray-100 transition-all duration-300"
+                style={{
+                  backgroundSize: '200% 200%',
+                  animation: 'gradient-shift 4s ease-in-out infinite'
+                }}>
                 ai tweet analyzer
               </h1>
             </button>
 
             {/* input with paste and search icons - improved responsive form */}
             <form onSubmit={handleSubmit} className={`transition-all duration-700 ease-in-out ${
-              tweetData || error ? 'mb-0' : 'mb-8'
+              tweetData ? 'mb-0' : 'mb-8'
             }`}>
               <div className="relative">
                 <input
-                  type="url"
+                  type="text"
                   value={tweetUrl}
                   onChange={(e) => setTweetUrl(e.target.value)}
                   onKeyDown={handleInputKeyDown}
                   placeholder="paste tweet url here"
-                  className="w-full px-4 py-4 pr-24 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 text-sm sm:text-base"
-                  required
+                  className={`w-full px-4 py-4 pr-24 bg-gray-900 border ${isInvalid ? 'border-red-500' : 'border-gray-700'} rounded-lg text-white placeholder-gray-500 focus:outline-none ${isInvalid ? 'focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'} transition-all duration-200 text-sm sm:text-base ${isShaking ? 'animate-pulse' : ''}`}
+                  style={isShaking ? {
+                    animation: 'shake 0.5s ease-in-out',
+                    transform: 'translateX(0)'
+                  } : {}}
                   disabled={isLoading || isAnalyzing}
                 />
                 
@@ -310,7 +352,7 @@ export default function Home() {
                 {/* submit button */}
                 <button
                   type="submit"
-                  disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
+                  disabled={isLoading || isAnalyzing}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
                 >
                   {isLoading || isAnalyzing ? (
@@ -375,9 +417,12 @@ export default function Home() {
       {/* footer - always at bottom */}
       <footer className="mt-auto pt-8 pb-4 border-t border-gray-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-2">
-            <p className="text-gray-400 text-sm">
+          <div className="flex justify-center space-x-2">
+            <p className="text-gray-500 text-xs">
               app currently doesn't support twitter media
+            </p>
+            <p className="text-gray-500 text-xs">
+              |
             </p>
             <p className="text-gray-500 text-xs">
               created by{' '}
