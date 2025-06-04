@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function Home() {
   const [tweetUrl, setTweetUrl] = useState('')
@@ -24,6 +25,15 @@ export default function Home() {
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="mb-6">
+            <Image
+              src="/tweet_analyzer.png"
+              alt="Tweet Analyzer Logo"
+              width={80}
+              height={80}
+              className="mx-auto"
+            />
+          </div>
           <h1 className="text-2xl font-bold text-white mb-2">
             ai tweet analyzer
           </h1>
