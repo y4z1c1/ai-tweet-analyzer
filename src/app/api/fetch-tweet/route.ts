@@ -85,6 +85,65 @@ async function fetchProfilePicture(username: string): Promise<string | undefined
   }
 }
 
+// helper function to extract text from html
+function extractTextFromHtml(html: string): string {
+  // first try to find the actual tweet text in a more structured way
+  // twitter oembed often contains the tweet text in specific patterns
+  
+  // look for the main tweet content in blockquote
+  const blockquoteMatch = html.match(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/i)
+  
+  if (blockquoteMatch) {
+    let tweetText = blockquoteMatch[1]
+    
+    // remove links (like pic.twitter.com links)
+    tweetText = tweetText.replace(/<a[^>]*>.*?<\/a>/gi, '')
+    
+    // remove the author info and date (usually at the end)
+    // pattern: &mdash; AuthorName (@username) Date
+    tweetText = tweetText.replace(/&mdash;[\s\S]*?$/i, '')
+    
+    // remove any remaining html tags
+    tweetText = tweetText.replace(/<[^>]*>/g, '')
+    
+    // decode html entities properly
+    tweetText = tweetText
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&apos;/g, "'")
+    
+    // clean up whitespace
+    tweetText = tweetText
+      .replace(/\s+/g, ' ')
+      .trim()
+    
+    console.log('extracted clean tweet text:', tweetText)
+    return tweetText
+  }
+  
+  // fallback to previous method if blockquote method fails
+  const textContent = html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // remove scripts
+    .replace(/<[^>]*>/g, '') // remove html tags
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&apos;/g, "'")
+    .trim()
+  
+  console.log('extracted tweet text (fallback):', textContent)
+  return textContent
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { tweetUrl } = await request.json()
@@ -216,63 +275,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
-
-// helper function to extract text from html
-function extractTextFromHtml(html: string): string {
-  // first try to find the actual tweet text in a more structured way
-  // twitter oembed often contains the tweet text in specific patterns
-  
-  // look for the main tweet content in blockquote
-  const blockquoteMatch = html.match(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/i)
-  
-  if (blockquoteMatch) {
-    let tweetText = blockquoteMatch[1]
-    
-    // remove links (like pic.twitter.com links)
-    tweetText = tweetText.replace(/<a[^>]*>.*?<\/a>/gi, '')
-    
-    // remove the author info and date (usually at the end)
-    // pattern: &mdash; AuthorName (@username) Date
-    tweetText = tweetText.replace(/&mdash;[\s\S]*?$/i, '')
-    
-    // remove any remaining html tags
-    tweetText = tweetText.replace(/<[^>]*>/g, '')
-    
-    // decode html entities properly
-    tweetText = tweetText
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&#x27;/g, "'")
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&apos;/g, "'")
-    
-    // clean up whitespace
-    tweetText = tweetText
-      .replace(/\s+/g, ' ')
-      .trim()
-    
-    console.log('extracted clean tweet text:', tweetText)
-    return tweetText
-  }
-  
-  // fallback to previous method if blockquote method fails
-  const textContent = html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // remove scripts
-    .replace(/<[^>]*>/g, '') // remove html tags
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&#x27;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&apos;/g, "'")
-    .trim()
-  
-  console.log('extracted tweet text (fallback):', textContent)
-  return textContent
 } 

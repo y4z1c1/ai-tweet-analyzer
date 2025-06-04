@@ -169,6 +169,8 @@ export default function Home() {
               </p>
             </div>
           )}
+          
+
         </div>
 
         {/* date and time - improved responsive text */}
@@ -235,9 +237,6 @@ export default function Home() {
                 ai tweet analyzer
               </h1>
             </div>
-            <p className="text-gray-400 text-base sm:text-lg max-w-md mx-auto">
-              paste tweet url to analyze with ai
-            </p>
           </div>
 
           {/* input with paste and search icons - improved responsive form */}
