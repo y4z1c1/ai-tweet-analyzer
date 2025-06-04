@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { TweetData, TweetApiResponse } from '@/types/tweet'
+import { AnalysisResult, AnalysisApiResponse } from '@/types/analysis'
 
 export default function Home() {
   const [tweetUrl, setTweetUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [tweetData, setTweetData] = useState<TweetData | null>(null)
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   // load twitter widgets script when tweet data is available
@@ -39,8 +42,10 @@ export default function Home() {
     setIsLoading(true)
     setError(null)
     setTweetData(null)
+    setAnalysis(null)
 
     try {
+      // first fetch the tweet
       const response = await fetch('/api/fetch-tweet', {
         method: 'POST',
         headers: {
@@ -53,6 +58,27 @@ export default function Home() {
 
       if (data.success && data.tweet) {
         setTweetData(data.tweet)
+        
+        // then analyze the tweet with ai
+        setIsAnalyzing(true)
+        const analysisResponse = await fetch('/api/analyze-tweet', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            text: data.tweet.text,
+            authorName: data.tweet.authorName 
+          }),
+        })
+
+        const analysisData: AnalysisApiResponse = await analysisResponse.json()
+        
+        if (analysisData.success && analysisData.analysis) {
+          setAnalysis(analysisData.analysis)
+        } else {
+          setError(analysisData.error || 'failed to analyze tweet')
+        }
       } else {
         setError(data.error || 'failed to fetch tweet')
       }
@@ -61,6 +87,17 @@ export default function Home() {
       setError('network error occurred')
     } finally {
       setIsLoading(false)
+      setIsAnalyzing(false)
+    }
+  }
+
+  // helper function to get sentiment color
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-400'
+      case 'negative': return 'text-red-400'
+      case 'neutral': return 'text-gray-400'
+      default: return 'text-gray-400'
     }
   }
 
@@ -99,10 +136,12 @@ export default function Home() {
           
           <button
             type="submit"
-            disabled={isLoading || !tweetUrl.trim()}
+            disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
             className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
           >
-            {isLoading ? 'fetching tweet...' : 'analyze tweet'}
+            {isLoading ? 'fetching tweet...' : 
+             isAnalyzing ? 'analyzing with ai...' : 
+             'analyze tweet'}
           </button>
         </form>
 
@@ -115,14 +154,61 @@ export default function Home() {
 
         {/* tweet embed display */}
         {tweetData && (
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 mb-6">
             <h3 className="text-white font-semibold mb-3 text-center">
               fetched tweet:
             </h3>
             <div 
               dangerouslySetInnerHTML={{ __html: tweetData.html }}
-              className="flex justify-center"
+              className="flex justify-center [&_blockquote]:max-w-sm [&_blockquote]:mx-auto [&_blockquote]:text-sm"
+              style={{
+                // make embedded tweet smaller
+                transform: 'scale(0.8)',
+                transformOrigin: 'center'
+              }}
             />
+          </div>
+        )}
+
+        {/* analyzing indicator */}
+        {isAnalyzing && (
+          <div className="bg-blue-900/50 border border-blue-500 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+              <p className="text-blue-200 font-medium">analyzing tweet with ai...</p>
+            </div>
+          </div>
+        )}
+
+        {/* ai analysis results */}
+        {analysis && (
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+            <h3 className="text-white font-semibold mb-4 text-center">
+              ai analysis results:
+            </h3>
+            
+            <div className="space-y-4">
+              {/* sentiment */}
+              <div>
+                <h4 className="text-gray-400 text-sm mb-2">sentiment:</h4>
+                <div className="flex items-center gap-3">
+                  <span className={`font-semibold text-lg ${getSentimentColor(analysis.sentiment)}`}>
+                    {analysis.sentiment}
+                  </span>
+                  <span className="text-gray-500 text-sm">
+                    ({Math.round(analysis.confidence * 100)}% confidence)
+                  </span>
+                </div>
+              </div>
+
+              {/* summary */}
+              <div>
+                <h4 className="text-gray-400 text-sm mb-2">summary:</h4>
+                <p className="text-white bg-gray-800 p-3 rounded">
+                  {analysis.summary}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
