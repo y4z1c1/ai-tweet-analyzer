@@ -131,10 +131,27 @@ export default function Home() {
       <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 sm:p-6">
         {/* tweet header - improved responsive layout */}
         <div className="flex items-start space-x-3 mb-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm sm:text-lg">
-              {tweet.authorName.charAt(0).toUpperCase()}
-            </span>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {tweet.profilePicture ? (
+              <Image
+                src={tweet.profilePicture}
+                alt={`${tweet.authorName} profile picture`}
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // fallback to placeholder if image fails to load
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                  target.nextElementSibling?.classList.remove('hidden')
+                }}
+              />
+            ) : null}
+            <div className={`w-full h-full bg-blue-600 rounded-full flex items-center justify-center ${tweet.profilePicture ? 'hidden' : ''}`}>
+              <span className="text-white font-bold text-sm sm:text-lg">
+                {tweet.authorName.charAt(0).toUpperCase()}
+              </span>
+            </div>
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-white font-semibold text-base sm:text-lg truncate">{tweet.authorName}</h4>
@@ -145,6 +162,13 @@ export default function Home() {
         {/* tweet content - improved typography and spacing */}
         <div className="mb-6">
           <p className="text-white text-base sm:text-lg leading-relaxed break-words">{tweet.text}</p>
+          {tweet.text.includes('could not be retrieved') && (
+            <div className="mt-3 p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-lg">
+              <p className="text-yellow-200 text-sm">
+                ⚠️ tweet content limited due to api restrictions. analysis will proceed with available data.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* date and time - improved responsive text */}

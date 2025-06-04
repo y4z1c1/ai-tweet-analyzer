@@ -7,6 +7,7 @@ export interface TweetData {
   text: string
   width: number
   height: number
+  profilePicture?: string
 }
 
 export interface TweetApiResponse {
