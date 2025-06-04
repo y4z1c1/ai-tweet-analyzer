@@ -8,7 +8,7 @@ A Next.js app that analyzes tweets using AI for sentiment and summary, saving re
 
 ## 🚀 Live Demo
 
-- **App**: https://ai-tweet-analyzer-git-main-y4z1c1s-projects.vercel.app
+- **App**: https://ai-tweet-analyzer.vercel.app
 - **Results Spreadsheet**: https://docs.google.com/spreadsheets/d/1PwBQP9EUJAGfpFlmE4-0vr0MhoFCa9NolrR-m6cqtoM/edit?usp=sharing
 
 ## ✨ Features
