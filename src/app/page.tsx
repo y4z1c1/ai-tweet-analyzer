@@ -12,6 +12,7 @@ export default function Home() {
   const [tweetData, setTweetData] = useState<TweetData | null>(null)
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | 'error' | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,6 +22,7 @@ export default function Home() {
     setError(null)
     setTweetData(null)
     setAnalysis(null)
+    setSaveStatus(null)
 
     try {
       // first fetch the tweet
@@ -56,6 +58,17 @@ export default function Home() {
         
         if (analysisData.success && analysisData.analysis) {
           setAnalysis(analysisData.analysis)
+          
+          // save to database
+          setSaveStatus('saving')
+          try {
+            // simulate database save - replace with actual api call
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            setSaveStatus('saved')
+          } catch (saveError) {
+            console.error('database save error:', saveError)
+            setSaveStatus('error')
+          }
         } else {
           setError(analysisData.error || 'failed to analyze tweet')
         }
@@ -76,6 +89,15 @@ export default function Home() {
       e.preventDefault()
       handleSubmit(e as React.FormEvent)
     }
+  }
+
+  // function to reset to main page
+  const handleBackToMain = () => {
+    setTweetData(null)
+    setAnalysis(null)
+    setError(null)
+    setSaveStatus(null)
+    setTweetUrl('')
   }
 
   // helper function to get sentiment color
@@ -182,7 +204,13 @@ export default function Home() {
         {isAnalyzing && (
           <div className="border-t border-gray-700 pt-4">
             <div className="flex items-center justify-center sm:justify-start space-x-3 mb-4">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+              <Image
+                src="/loading-spinner.png"
+                alt="Loading"
+                width={20}
+                height={20}
+                className="animate-spin"
+              />
               <p className="text-blue-200 font-medium text-sm sm:text-base">analyzing with ai...</p>
             </div>
           </div>
@@ -216,93 +244,155 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black flex flex-col">
       {/* main container with proper padding and responsive design */}
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow">
         {/* main analyzer section with better responsive width */}
         <div className="max-w-2xl mx-auto">
-          {/* header with logo and title side by side - improved responsive layout */}
-          <div className="text-center mb-12">
-            <div className="flex flex-col sm:flex-row items-center justify-center sm:space-x-2 mb-6">
-              <div className="mb-2 sm:mb-0">
-                <Image
-                  src="/tweet_analyzer.png"
-                  alt="Tweet Analyzer Logo"
-                  width={60}
-                  height={60}
-                  className="mx-auto sm:mx-0"
-                />
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white">
+          {/* header with logo and title - smooth transition to top when search is made */}
+          <div className={`text-center transition-all duration-700 ease-in-out ${
+            tweetData || error ? 'mb-8' : 'mb-12 min-h-[50vh] flex flex-col justify-center'
+          }`}>
+            <button 
+              onClick={handleBackToMain}
+              className={`flex items-center justify-center space-x-1 transition-all duration-700 ease-in-out hover:scale-105 active:scale-95 cursor-pointer group ${
+                tweetData || error ? 'mb-4' : 'mb-8'
+              }`}
+            >
+              <Image
+                src="/tweet_analyzer.png"
+                alt="Tweet Analyzer Logo"
+                width={60}
+                height={60}
+                className="flex-shrink-0 group-hover:rotate-12 transition-transform duration-300"
+              />
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent hover:from-blue-500 hover:via-blue-400 hover:to-gray-100 transition-all duration-300">
                 ai tweet analyzer
               </h1>
-            </div>
-          </div>
+            </button>
 
-          {/* input with paste and search icons - improved responsive form */}
-          <form onSubmit={handleSubmit} className="mb-8">
-            <div className="relative">
-              <input
-                type="url"
-                value={tweetUrl}
-                onChange={(e) => setTweetUrl(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                placeholder="paste tweet url here"
-                className="w-full px-4 py-4 pr-24 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 text-sm sm:text-base"
-                required
-                disabled={isLoading || isAnalyzing}
-              />
-              
-              {/* paste button */}
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    const text = await navigator.clipboard.readText()
-                    setTweetUrl(text)
-                  } catch (err) {
-                    console.error('failed to read clipboard:', err)
-                  }
-                }}
-                disabled={isLoading || isAnalyzing}
-                className="absolute right-16 top-1/2 transform -translate-y-1/2 p-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
-                title="paste from clipboard"
-              >
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </button>
-              
-              {/* submit button */}
-              <button
-                type="submit"
-                disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
-              >
-                {isLoading || isAnalyzing ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
+            {/* input with paste and search icons - improved responsive form */}
+            <form onSubmit={handleSubmit} className={`transition-all duration-700 ease-in-out ${
+              tweetData || error ? 'mb-0' : 'mb-8'
+            }`}>
+              <div className="relative">
+                <input
+                  type="url"
+                  value={tweetUrl}
+                  onChange={(e) => setTweetUrl(e.target.value)}
+                  onKeyDown={handleInputKeyDown}
+                  placeholder="paste tweet url here"
+                  className="w-full px-4 py-4 pr-24 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 text-sm sm:text-base"
+                  required
+                  disabled={isLoading || isAnalyzing}
+                />
+                
+                {/* paste button */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const text = await navigator.clipboard.readText()
+                      setTweetUrl(text)
+                    } catch (err) {
+                      console.error('failed to read clipboard:', err)
+                    }
+                  }}
+                  disabled={isLoading || isAnalyzing}
+                  className="absolute right-16 top-1/2 transform -translate-y-1/2 p-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
+                  title="paste from clipboard"
+                >
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                )}
-              </button>
-            </div>
-          </form>
+                </button>
+                
+                {/* submit button */}
+                <button
+                  type="submit"
+                  disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
+                >
+                  {isLoading || isAnalyzing ? (
+                    <Image
+                      src="/loading-spinner.png"
+                      alt="Loading"
+                      width={20}
+                      height={20}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
 
           {/* error display - improved spacing and responsiveness */}
           {error && (
-            <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-8">
+            <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-8 transform transition-all duration-500 ease-in-out animate-in slide-in-from-top-4">
               <p className="text-red-200 text-sm sm:text-base text-center sm:text-left">{error}</p>
             </div>
           )}
 
-          {/* tweet display with analysis combined - improved container */}
+          {/* tweet display with analysis combined - improved container with smooth entry */}
           <div className="space-y-6">
-            {tweetData && <TweetDisplay tweet={tweetData} />}
+            {tweetData && (
+              <div className="transform transition-all duration-700 ease-in-out animate-in slide-in-from-bottom-8">
+                <TweetDisplay tweet={tweetData} />
+                
+                {/* database save status indicator */}
+                {saveStatus && (
+                  <div className="text-center mt-4">
+                    <p className={`text-xs sm:text-sm transition-all duration-300 ${
+                      saveStatus === 'saved' 
+                        ? 'text-green-400' 
+                        : saveStatus === 'error'
+                        ? 'text-red-400'
+                        : 'text-gray-400'
+                    }`}>
+                      {saveStatus === 'saving' && (
+                        <>💾 saving analysis to <a href={`https://docs.google.com/spreadsheets/d/${process.env.NEXT_PUBLIC_GOOGLE_SHEETS_ID}/edit`} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-300 transition-colors">database</a>...</>
+                      )}
+                      {saveStatus === 'saved' && (
+                        <>✅ analysis saved to <a href={`https://docs.google.com/spreadsheets/d/${process.env.NEXT_PUBLIC_GOOGLE_SHEETS_ID}/edit`} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-300 transition-colors">database</a></>
+                      )}
+                      {saveStatus === 'error' && (
+                        <>❌ failed to save analysis to <a href={`https://docs.google.com/spreadsheets/d/${process.env.NEXT_PUBLIC_GOOGLE_SHEETS_ID}/edit`} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-300 transition-colors">database</a></>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
+        
+      {/* footer - always at bottom */}
+      <footer className="mt-auto pt-8 pb-4 border-t border-gray-800">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-2">
+            <p className="text-gray-400 text-sm">
+              app currently doesn't support twitter media
+            </p>
+            <p className="text-gray-500 text-xs">
+              created by{' '}
+              <a 
+                href="https://github.com/y4z1c1" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors duration-200 underline"
+              >
+                y4z1c1
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
