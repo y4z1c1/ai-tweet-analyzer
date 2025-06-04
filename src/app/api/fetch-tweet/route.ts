@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     // normalize url for oembed api
     const normalizedUrl = normalizeTweetUrl(cleanUrl)
 
-    // fetch tweet data using twitter oembed api
-    const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(normalizedUrl)}&omit_script=true`
+    // fetch tweet data using twitter oembed api with dark theme
+    const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(normalizedUrl)}&omit_script=true&theme=dark`
     
     const response = await fetch(oembedUrl)
     

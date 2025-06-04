@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { TweetData, TweetApiResponse } from '@/types/tweet'
 
@@ -9,6 +9,28 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [tweetData, setTweetData] = useState<TweetData | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // load twitter widgets script when tweet data is available
+  useEffect(() => {
+    if (tweetData && typeof window !== 'undefined') {
+      // load twitter widgets script if not already loaded
+      if (!window.twttr) {
+        const script = document.createElement('script')
+        script.src = 'https://platform.twitter.com/widgets.js'
+        script.async = true
+        script.onload = () => {
+          // process widgets after script loads
+          if (window.twttr?.widgets) {
+            window.twttr.widgets.load()
+          }
+        }
+        document.body.appendChild(script)
+      } else {
+        // if script already loaded, just process widgets
+        window.twttr.widgets.load()
+      }
+    }
+  }, [tweetData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,37 +113,30 @@ export default function Home() {
           </div>
         )}
 
-        {/* tweet data display */}
+        {/* tweet embed display */}
         {tweetData && (
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-            <div className="mb-4">
-              <h3 className="text-white font-semibold mb-2">fetched tweet data:</h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-gray-400">author:</span>
-                  <span className="text-white ml-2">{tweetData.authorName}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400">text content:</span>
-                  <p className="text-white mt-1 bg-gray-800 p-3 rounded border">
-                    {tweetData.text}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* raw html preview (optional) */}
-            <details className="mt-4">
-              <summary className="text-gray-400 cursor-pointer hover:text-white">
-                show raw embed html
-              </summary>
-              <div className="mt-2 p-3 bg-gray-800 rounded text-xs text-gray-300 overflow-auto">
-                <pre>{tweetData.html}</pre>
-              </div>
-            </details>
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-white font-semibold mb-3 text-center">
+              fetched tweet:
+            </h3>
+            <div 
+              dangerouslySetInnerHTML={{ __html: tweetData.html }}
+              className="flex justify-center"
+            />
           </div>
         )}
       </div>
     </div>
   )
+}
+
+// extend window type for twitter widgets
+declare global {
+  interface Window {
+    twttr?: {
+      widgets: {
+        load: () => void
+      }
+    }
+  }
 }
