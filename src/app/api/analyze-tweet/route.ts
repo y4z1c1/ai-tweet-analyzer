@@ -9,7 +9,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, authorName, tweetUrl } = await request.json()
+    const { text, authorName, username, tweetUrl } = await request.json()
     
     if (!text) {
       return NextResponse.json(
@@ -85,7 +85,7 @@ Please respond in this exact JSON format:
     try {
       if (process.env.GOOGLE_SHEETS_CREDENTIALS && process.env.SPREADSHEET_ID) {
         await saveTweetAnalysis({
-          username: authorName || 'unknown',
+          username: username || 'unknown',
           tweetContent: text,
           sentiment: analysisResult.sentiment,
           summary: analysisResult.summary,

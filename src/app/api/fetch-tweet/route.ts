@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateTweetUrl, normalizeTweetUrl, cleanTweetUrl } from '@/lib/utils'
 
+// helper function to extract username from twitter profile url
+function extractUsernameFromUrl(authorUrl: string): string {
+  try {
+    // author_url format: https://twitter.com/username
+    const match = authorUrl.match(/twitter\.com\/([^\/\?#]+)/i) || authorUrl.match(/x\.com\/([^\/\?#]+)/i)
+    return match ? match[1] : ''
+  } catch {
+    return ''
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { tweetUrl } = await request.json()
@@ -44,14 +55,20 @@ export async function POST(request: NextRequest) {
     
     console.log('oembed response data:')
     console.log('- author_name:', oembedData.author_name)
+    console.log('- author_url:', oembedData.author_url)
     console.log('- url:', oembedData.url)
     console.log('- html length:', oembedData.html?.length)
+    
+    // extract username from author url
+    const username = extractUsernameFromUrl(oembedData.author_url || '')
+    console.log('- extracted username:', username)
     
     // extract useful info from oembed response
     const tweetData = {
       html: oembedData.html,
       authorName: oembedData.author_name,
       authorUrl: oembedData.author_url,
+      username: username,
       url: oembedData.url,
       // extract text content from html
       text: extractTextFromHtml(oembedData.html),

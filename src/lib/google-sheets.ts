@@ -122,39 +122,4 @@ export async function saveTweetAnalysis(data: {
     console.error('error saving to sheets:', error);
     throw new Error('failed to save to google sheets');
   }
-}
-
-// get all analysis results from spreadsheet
-export async function getAnalysisResults() {
-  const spreadsheetId = process.env.SPREADSHEET_ID;
-  
-  if (!spreadsheetId) {
-    throw new Error('spreadsheet_id not configured');
-  }
-
-  const sheets = await getGoogleSheetsClient();
-  
-  try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: 'A:F',
-    });
-
-    const rows = response.data.values || [];
-    
-    // skip header row
-    const dataRows = rows.slice(1);
-    
-    return dataRows.map((row: string[]) => ({
-      username: row[0] || '',
-      tweetContent: row[1] || '',
-      sentiment: row[2] || '',
-      summary: row[3] || '',
-      dateTime: row[4] || '',
-      tweetUrl: row[5] || '',
-    }));
-  } catch (error) {
-    console.error('error reading from sheets:', error);
-    throw new Error('failed to read from google sheets');
-  }
 } 

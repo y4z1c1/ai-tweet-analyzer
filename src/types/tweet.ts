@@ -2,6 +2,7 @@ export interface TweetData {
   html: string
   authorName: string
   authorUrl: string
+  username: string
   url: string
   text: string
   width: number

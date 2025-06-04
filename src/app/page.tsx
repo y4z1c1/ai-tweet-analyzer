@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { TweetData, TweetApiResponse } from '@/types/tweet'
 import { AnalysisResult, AnalysisApiResponse } from '@/types/analysis'
-import ResultsHistory from '@/components/ResultsHistory'
 
 export default function Home() {
   const [tweetUrl, setTweetUrl] = useState('')
@@ -48,6 +47,7 @@ export default function Home() {
           body: JSON.stringify({ 
             text: data.tweet.text,
             authorName: data.tweet.authorName,
+            username: data.tweet.username,
             tweetUrl: tweetUrl.trim()
           }),
         })
@@ -119,10 +119,13 @@ export default function Home() {
       })
     }
 
-    // generate username from author name
+    // generate username from author name - fallback if username not available
     const generateUsername = (authorName: string) => {
       return '@' + authorName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
     }
+
+    // use actual username if available, otherwise generate one
+    const displayUsername = tweet.username ? `@${tweet.username}` : generateUsername(tweet.authorName)
 
     return (
       <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
@@ -135,7 +138,7 @@ export default function Home() {
           </div>
           <div className="flex-1">
             <h4 className="text-white font-semibold">{tweet.authorName}</h4>
-            <p className="text-gray-400 text-sm">{generateUsername(tweet.authorName)}</p>
+            <p className="text-gray-400 text-sm">{displayUsername}</p>
           </div>
         </div>
 
@@ -246,11 +249,6 @@ export default function Home() {
 
         {/* tweet display with analysis combined */}
         {tweetData && <TweetDisplay tweet={tweetData} />}
-      </div>
-
-      {/* results history section */}
-      <div className="max-w-6xl mx-auto">
-        <ResultsHistory />
       </div>
     </div>
   )
