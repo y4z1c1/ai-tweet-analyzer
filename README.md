@@ -1,6 +1,8 @@
 # AI Tweet Analyzer
 
-![AI Tweet Analyzer Logo](public/tweet_analyzer.png)
+<div align="center">
+  <img src="public/tweet_analyzer.png" alt="AI Tweet Analyzer Logo" width="300">
+</div>
 
 A Next.js app that analyzes tweets using AI for sentiment and summary, saving results to Google Sheets.
 
