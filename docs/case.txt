@@ -1,0 +1,57 @@
+Swipeline AI Studio – Developer Intern Teknik Görevi
+Görev: AI Tweet Analiz Otomatı (Mini App)
+Senaryomuz:​
+Kullanıcı, bir tweet linki veriyor. Uygulama, tweet’in içeriğini alıyor ve ChatGPT API gibi bir
+sistemle bu içeriği analiz ediyor. Analiz sonucunu ve bazı tweet özelliklerini bir spreadsheet’e
+(veya Airtable’a) yazıyor.
+
+Yapılacaklar:
+1.​ Tweet URL'si input olarak girilecek​
+2.​ Tweet içeriğini çek (sahte data olabilir – ister API’siz, ister Twitter embed ile al)​
+3.​ Aşağıdaki analizleri döndür:​
+○​ İçerik özeti (1-2 cümle)​
+○​ Duygu analizi (olumlu / olumsuz / nötr)​
+○​ Gönderim saati (sahte olabilir)​
+○​ Kullanıcı adı​
+4.​ Bu analiz sonucunu aşağıdaki sütunları içerecek şekilde bir tabloya yaz (Google
+Sheets veya Airtable):​
+○​ @username
+○​ Tweet İçeriği
+○​ Duygu
+○​ Özet
+○​ Tarih ve Saat​
+
+5.​ Her yeni tweet girildiğinde tabloya yeni bir satır eklenmeli.​
+
+Notlar:
+●​ Gerçek ChatGPT API’si kullanmak zorunlu değil; ama istersen kullanabilirsin.​
+
+●​ Google Sheets API ya da Airtable API kullanımı için örnek dökümantasyonlara
+bakabilirsin.​
+●​ Kullanıcı arayüzü sade olsun. UI/UX odaklı değiliz.​
+
+Teknolojiler:
+●​ React (zorunlu)​
+●​ Node.js (tercih edilir)​
+●​ Airtable veya Google Sheets API (en az biri entegre edilmeli)​
+
+Teslimat:
+●​ GitHub reposu​
+●​ README.md dosyasında nasıl çalıştırılacağını anlat​
+●​ Örnek tablo linki (readonly) ekleyebilirsin​
+●​ Tüm linkleri şu formdan gönder​
+
+Değerlendirme Kriterleri:
+●​ Gereksinimlere ne kadar uygun geliştirdiğin​
+●​ Basit ve etkili bir yapı kurman​
+●​ Kodu nasıl yazdığın ve açıklayıcılığın​
+●​ Özgünlük + "ben bu işe hevesliyim" sinyali​
+
+Hazırsan başlayabilirsin!
+Yolda takılırsan ai@swipeline.co adresinden bize ulaşabilirsin.
+Bol şans!​
+Swipeline AI Studio Ekibi
+
+💻✨
+
+
