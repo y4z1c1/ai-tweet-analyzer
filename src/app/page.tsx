@@ -419,7 +419,7 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center space-x-2">
             <p className="text-gray-500 text-xs">
-              app currently doesn't support twitter media
+              app currently doesn&apos;t support twitter media
             </p>
             <p className="text-gray-500 text-xs">
               |
