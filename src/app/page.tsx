@@ -197,8 +197,8 @@ export default function Home() {
         <div className="max-w-2xl mx-auto">
           {/* header with logo and title side by side - improved responsive layout */}
           <div className="text-center mb-12">
-            <div className="flex flex-col sm:flex-row items-center justify-center sm:space-x-4 mb-6">
-              <div className="mb-4 sm:mb-0">
+            <div className="flex flex-col sm:flex-row items-center justify-center sm:space-x-2 mb-6">
+              <div className="mb-2 sm:mb-0">
                 <Image
                   src="/tweet_analyzer.png"
                   alt="Tweet Analyzer Logo"
@@ -216,7 +216,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* input with search icon - improved responsive form */}
+          {/* input with paste and search icons - improved responsive form */}
           <form onSubmit={handleSubmit} className="mb-8">
             <div className="relative">
               <input
@@ -224,11 +224,33 @@ export default function Home() {
                 value={tweetUrl}
                 onChange={(e) => setTweetUrl(e.target.value)}
                 onKeyDown={handleInputKeyDown}
-                placeholder="https://twitter.com/username/status/... or https://x.com/username/status/..."
-                className="w-full px-4 py-4 pr-14 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 text-sm sm:text-base"
+                placeholder="paste tweet url here"
+                className="w-full px-4 py-4 pr-24 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 text-sm sm:text-base"
                 required
                 disabled={isLoading || isAnalyzing}
               />
+              
+              {/* paste button */}
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText()
+                    setTweetUrl(text)
+                  } catch (err) {
+                    console.error('failed to read clipboard:', err)
+                  }
+                }}
+                disabled={isLoading || isAnalyzing}
+                className="absolute right-16 top-1/2 transform -translate-y-1/2 p-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
+                title="paste from clipboard"
+              >
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </button>
+              
+              {/* submit button */}
               <button
                 type="submit"
                 disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
