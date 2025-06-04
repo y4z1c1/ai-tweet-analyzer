@@ -1,51 +1,70 @@
 # AI Tweet Analyzer
 
-Next.js app that fetches tweets and analyzes them with AI for sentiment and summary.
+A Next.js app that analyzes tweets using AI for sentiment and summary, saving results to Google Sheets.
 
-## Features
+## 🚀 Live Demo
 
-- **Tweet Fetching**: Enter any Twitter/X URL to fetch tweet content
-- **Dark Mode Embeds**: Displays tweets in beautiful dark mode
-- **AI Analysis**: Uses GPT-4 to analyze sentiment and generate summaries
-- **Real-time Processing**: Instant analysis after tweet fetch
+- **App**: https://ai-tweet-analyzer-git-main-y4z1c1s-projects.vercel.app
+- **Results Spreadsheet**: https://docs.google.com/spreadsheets/d/1PwBQP9EUJAGfpFlmE4-0vr0MhoFCa9NolrR-m6cqtoM/edit?usp=sharing
 
-## Setup
+## ✨ Features
 
-1. **Clone and install dependencies:**
-   ```bash
-   npm install
-   ```
+- Paste any Twitter/X URL to analyze tweets
+- AI-powered sentiment analysis and summaries
+- Automatic save to Google Sheets
+- Dark mode tweet embeds
+- OCR for image text extraction
 
-2. **Environment Variables:**
-   Create a `.env.local` file with:
-   ```
-   OPENAI_API_KEY=your_openai_api_key_here
-   ```
+## 🛠️ Quick Setup
 
-3. **Get OpenAI API Key:**
-   - Sign up at [OpenAI](https://platform.openai.com/)
-   - Create an API key in your dashboard
-   - Add it to your `.env.local` file
+1. **Clone & Install**
+```bash
+git clone https://github.com/y4z1c1/ai-tweet-analyzer.git
+cd swipeline_case
+npm install
+```
 
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
+2. **Environment Variables**
+Create `.env.local`:
+```env
+OPENAI_API_KEY=your_openai_api_key
+GOOGLE_SHEETS_CREDENTIALS={"type":"service_account",...}
+SPREADSHEET_ID=your_spreadsheet_id
+```
 
-5. **Open** [http://localhost:3000](http://localhost:3000)
+3. **Run**
+```bash
+npm run dev
+```
 
-## Usage
+## 📋 Usage
 
-1. Paste any Twitter or X.com tweet URL
-2. Click "Analyze Tweet" 
-3. View the embedded tweet and AI analysis results
-4. See sentiment (positive/negative/neutral) with confidence score
-5. Read the AI-generated summary
+1. Paste a Twitter URL (e.g., `https://twitter.com/username/status/123456789`)
+2. Click analyze to get AI sentiment and summary
+3. Results automatically save to Google Sheets
 
-## Tech Stack
+## 🔧 Getting API Keys
 
-- **Framework**: Next.js 15 with App Router
-- **Styling**: Tailwind CSS
-- **AI**: OpenAI GPT-4 API
-- **Tweet Data**: Twitter oEmbed API
-- **TypeScript**: Full type safety
+### OpenAI
+1. Sign up at [OpenAI Platform](https://platform.openai.com/)
+2. Create API key
+3. Add to `.env.local`
+
+### Google Sheets
+1. Create project at [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable Google Sheets API
+3. Create service account & download JSON key
+4. Share your spreadsheet with service account email
+5. Add credentials to `.env.local`
+
+## 📊 Tech Stack
+
+- Next.js 15 + TypeScript
+- Tailwind CSS v4
+- OpenAI GPT-4o-mini
+- Google Sheets API
+- Twitter oEmbed API
+
+```
+
+

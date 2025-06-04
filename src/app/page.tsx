@@ -74,7 +74,7 @@ export default function Home() {
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSubmit(e as any)
+      handleSubmit(e as React.FormEvent)
     }
   }
 
@@ -128,57 +128,57 @@ export default function Home() {
     const displayUsername = tweet.username ? `@${tweet.username}` : generateUsername(tweet.authorName)
 
     return (
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-        {/* tweet header */}
+      <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 sm:p-6">
+        {/* tweet header - improved responsive layout */}
         <div className="flex items-start space-x-3 mb-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-lg">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-sm sm:text-lg">
               {tweet.authorName.charAt(0).toUpperCase()}
             </span>
           </div>
-          <div className="flex-1">
-            <h4 className="text-white font-semibold">{tweet.authorName}</h4>
-            <p className="text-gray-400 text-sm">{displayUsername}</p>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-white font-semibold text-base sm:text-lg truncate">{tweet.authorName}</h4>
+            <p className="text-gray-400 text-sm truncate">{displayUsername}</p>
           </div>
         </div>
 
-        {/* tweet content */}
-        <div className="mb-4">
-          <p className="text-white text-lg leading-relaxed">{tweet.text}</p>
+        {/* tweet content - improved typography and spacing */}
+        <div className="mb-6">
+          <p className="text-white text-base sm:text-lg leading-relaxed break-words">{tweet.text}</p>
         </div>
 
-        {/* date and time */}
-        <div className="mb-4 text-gray-400 text-sm">
+        {/* date and time - improved responsive text */}
+        <div className="mb-4 text-gray-400 text-xs sm:text-sm">
           {formatDate(tweetDate)}
         </div>
 
-        {/* ai analysis section */}
+        {/* ai analysis section - improved loading state alignment */}
         {isAnalyzing && (
           <div className="border-t border-gray-700 pt-4">
-            <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center justify-center sm:justify-start space-x-3 mb-4">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
-              <p className="text-blue-200 font-medium">analyzing with ai...</p>
+              <p className="text-blue-200 font-medium text-sm sm:text-base">analyzing with ai...</p>
             </div>
           </div>
         )}
 
         {analysis && (
           <div className="border-t border-gray-700 pt-4">
-            <h4 className="text-white font-semibold mb-4">✨ ai analysis:</h4>
+            <h4 className="text-white font-semibold mb-4 text-base sm:text-lg">✨ ai analysis:</h4>
             
             <div className="space-y-4">
-              {/* sentiment */}
+              {/* sentiment - improved responsive layout */}
               <div>
-                <h5 className="text-gray-400 text-sm mb-2">sentiment:</h5>
-                <span className={`font-semibold text-lg ${getSentimentColor(analysis.sentiment)}`}>
+                <h5 className="text-gray-400 text-xs sm:text-sm mb-2 font-medium">sentiment:</h5>
+                <span className={`font-semibold text-lg sm:text-xl ${getSentimentColor(analysis.sentiment)} capitalize`}>
                   {analysis.sentiment}
                 </span>
               </div>
 
-              {/* summary */}
+              {/* summary - improved responsive container */}
               <div>
-                <h5 className="text-gray-400 text-sm mb-2">summary:</h5>
-                <p className="text-white bg-gray-800 p-3 rounded">
+                <h5 className="text-gray-400 text-xs sm:text-sm mb-2 font-medium">summary:</h5>
+                <p className="text-white bg-gray-800 p-3 sm:p-4 rounded text-sm sm:text-base leading-relaxed break-words">
                   {analysis.summary}
                 </p>
               </div>
@@ -190,65 +190,73 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      {/* main analyzer section */}
-      <div className="max-w-2xl mx-auto mb-12">
-        {/* header with logo and title side by side */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-4 mb-4">
-            <Image
-              src="/tweet_analyzer.png"
-              alt="Tweet Analyzer Logo"
-              width={60}
-              height={60}
-            />
-            <h1 className="text-2xl font-bold text-white">
-              ai tweet analyzer
-            </h1>
+    <div className="min-h-screen bg-black">
+      {/* main container with proper padding and responsive design */}
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* main analyzer section with better responsive width */}
+        <div className="max-w-2xl mx-auto">
+          {/* header with logo and title side by side - improved responsive layout */}
+          <div className="text-center mb-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center sm:space-x-4 mb-6">
+              <div className="mb-4 sm:mb-0">
+                <Image
+                  src="/tweet_analyzer.png"
+                  alt="Tweet Analyzer Logo"
+                  width={60}
+                  height={60}
+                  className="mx-auto sm:mx-0"
+                />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white">
+                ai tweet analyzer
+              </h1>
+            </div>
+            <p className="text-gray-400 text-base sm:text-lg max-w-md mx-auto">
+              paste tweet url to analyze with ai
+            </p>
           </div>
-          <p className="text-gray-400 text-sm">
-            paste tweet url to analyze with ai
-          </p>
+
+          {/* input with search icon - improved responsive form */}
+          <form onSubmit={handleSubmit} className="mb-8">
+            <div className="relative">
+              <input
+                type="url"
+                value={tweetUrl}
+                onChange={(e) => setTweetUrl(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder="https://twitter.com/username/status/... or https://x.com/username/status/..."
+                className="w-full px-4 py-4 pr-14 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 text-sm sm:text-base"
+                required
+                disabled={isLoading || isAnalyzing}
+              />
+              <button
+                type="submit"
+                disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
+              >
+                {isLoading || isAnalyzing ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                ) : (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* error display - improved spacing and responsiveness */}
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-8">
+              <p className="text-red-200 text-sm sm:text-base text-center sm:text-left">{error}</p>
+            </div>
+          )}
+
+          {/* tweet display with analysis combined - improved container */}
+          <div className="space-y-6">
+            {tweetData && <TweetDisplay tweet={tweetData} />}
+          </div>
         </div>
-
-        {/* input with search icon */}
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="relative">
-            <input
-              type="url"
-              value={tweetUrl}
-              onChange={(e) => setTweetUrl(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              placeholder="https://twitter.com/username/status/... or https://x.com/username/status/..."
-              className="w-full px-4 py-3 pr-12 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              required
-              disabled={isLoading || isAnalyzing}
-            />
-            <button
-              type="submit"
-              disabled={isLoading || isAnalyzing || !tweetUrl.trim()}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors"
-            >
-              {isLoading || isAnalyzing ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              ) : (
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </form>
-
-        {/* error display */}
-        {error && (
-          <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
-            <p className="text-red-200 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* tweet display with analysis combined */}
-        {tweetData && <TweetDisplay tweet={tweetData} />}
       </div>
     </div>
   )

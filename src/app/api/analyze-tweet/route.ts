@@ -71,7 +71,7 @@ Please respond in this exact JSON format:
         summary: parsed.summary,
         sentiment: parsed.sentiment as Sentiment
       }
-    } catch (parseError) {
+    } catch {
       console.error('failed to parse openai response:', responseContent)
       throw new Error('invalid response format from ai')
     }
