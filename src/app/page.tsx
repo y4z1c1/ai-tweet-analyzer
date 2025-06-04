@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { TweetData, TweetApiResponse } from '@/types/tweet'
 import { AnalysisResult, AnalysisApiResponse } from '@/types/analysis'
+import ResultsHistory from '@/components/ResultsHistory'
 
 export default function Home() {
   const [tweetUrl, setTweetUrl] = useState('')
@@ -46,7 +47,8 @@ export default function Home() {
           },
           body: JSON.stringify({ 
             text: data.tweet.text,
-            authorName: data.tweet.authorName
+            authorName: data.tweet.authorName,
+            tweetUrl: tweetUrl.trim()
           }),
         })
 
@@ -185,8 +187,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-black p-4">
+      {/* main analyzer section */}
+      <div className="max-w-2xl mx-auto mb-12">
         {/* header with logo and title side by side */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-4 mb-4">
@@ -243,6 +246,11 @@ export default function Home() {
 
         {/* tweet display with analysis combined */}
         {tweetData && <TweetDisplay tweet={tweetData} />}
+      </div>
+
+      {/* results history section */}
+      <div className="max-w-6xl mx-auto">
+        <ResultsHistory />
       </div>
     </div>
   )

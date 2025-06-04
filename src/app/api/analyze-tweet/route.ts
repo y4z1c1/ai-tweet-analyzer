@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { AnalysisResult, Sentiment } from '@/types/analysis'
+import { saveTweetAnalysis } from '@/lib/google-sheets'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,7 +9,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, authorName } = await request.json()
+    const { text, authorName, tweetUrl } = await request.json()
     
     if (!text) {
       return NextResponse.json(
@@ -78,6 +79,22 @@ Please respond in this exact JSON format:
     // validate sentiment value
     if (!['positive', 'negative', 'neutral'].includes(analysisResult.sentiment)) {
       analysisResult.sentiment = 'neutral'
+    }
+
+    // save to google sheets if configured
+    try {
+      if (process.env.GOOGLE_SHEETS_CREDENTIALS && process.env.SPREADSHEET_ID) {
+        await saveTweetAnalysis({
+          username: authorName || 'unknown',
+          tweetContent: text,
+          sentiment: analysisResult.sentiment,
+          summary: analysisResult.summary,
+          tweetUrl: tweetUrl || '',
+        });
+      }
+    } catch (sheetsError) {
+      // log error but don't fail the whole request
+      console.error('failed to save to google sheets:', sheetsError);
     }
 
     return NextResponse.json({
