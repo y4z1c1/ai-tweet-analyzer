@@ -8,7 +8,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, authorName } = await request.json()
+    const { text, authorName, mediaText } = await request.json()
     
     if (!text) {
       return NextResponse.json(
@@ -24,20 +24,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // prompt for gpt-4 to analyze tweet
-    const prompt = `Analyze this tweet and provide:
-1. A brief summary (1-2 sentences)
-2. Overall sentiment (positive, negative, or neutral)
-3. Confidence level for the sentiment (0-1 scale)
+    // build complete content including media text
+    let completeContent = `Tweet by ${authorName || 'Unknown'}:\n"${text}"`
+    
+    if (mediaText && mediaText.trim()) {
+      completeContent += `\n\nMedia content (extracted text from images/videos):\n${mediaText}`
+    }
 
-Tweet by ${authorName || 'Unknown'}:
-"${text}"
+    // prompt for gpt-4o-mini to analyze tweet including media
+    const prompt = `Analyze this tweet (including any media content) and provide:
+1. A brief summary (1-2 sentences) 
+2. Overall sentiment (positive, negative, or neutral)
+
+${completeContent}
 
 Please respond in this exact JSON format:
 {
   "summary": "your summary here",
-  "sentiment": "positive|negative|neutral",
-  "confidence": 0.85
+  "sentiment": "positive|negative|neutral"
 }`
 
     const completion = await openai.chat.completions.create({
@@ -45,7 +49,7 @@ Please respond in this exact JSON format:
       messages: [
         {
           role: "system",
-          content: "You are an expert at analyzing social media content for sentiment and summarization. Always respond with valid JSON in the exact format requested."
+          content: "You are an expert at analyzing social media content for sentiment and summarization. Consider both the main text and any extracted text from images/videos. Always respond with valid JSON in the exact format requested."
         },
         {
           role: "user", 
@@ -68,8 +72,7 @@ Please respond in this exact JSON format:
       const parsed = JSON.parse(responseContent)
       analysisResult = {
         summary: parsed.summary,
-        sentiment: parsed.sentiment as Sentiment,
-        confidence: Math.min(Math.max(parsed.confidence, 0), 1) // clamp between 0-1
+        sentiment: parsed.sentiment as Sentiment
       }
     } catch (parseError) {
       console.error('failed to parse openai response:', responseContent)

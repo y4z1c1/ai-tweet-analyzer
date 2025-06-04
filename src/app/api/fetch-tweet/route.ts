@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateTweetUrl, normalizeTweetUrl, cleanTweetUrl } from '@/lib/utils'
+import { analyzeMediaContent } from '@/lib/media-extractor'
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +43,9 @@ export async function POST(request: NextRequest) {
 
     const oembedData = await response.json()
     
+    // analyze media content and extract text
+    const mediaAnalysis = await analyzeMediaContent(oembedData.html)
+    
     // extract useful info from oembed response
     const tweetData = {
       html: oembedData.html,
@@ -51,7 +55,10 @@ export async function POST(request: NextRequest) {
       // extract text content from html (simple approach)
       text: extractTextFromHtml(oembedData.html),
       width: oembedData.width,
-      height: oembedData.height
+      height: oembedData.height,
+      // add media analysis results
+      mediaContent: mediaAnalysis.mediaItems,
+      mediaText: mediaAnalysis.combinedText
     }
 
     return NextResponse.json({

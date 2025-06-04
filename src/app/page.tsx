@@ -33,7 +33,7 @@ export default function Home() {
         window.twttr.widgets.load()
       }
     }
-  }, [tweetData])
+  }, [tweetData, analysis])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,7 +68,8 @@ export default function Home() {
           },
           body: JSON.stringify({ 
             text: data.tweet.text,
-            authorName: data.tweet.authorName 
+            authorName: data.tweet.authorName,
+            mediaText: data.tweet.mediaText
           }),
         })
 
@@ -167,6 +168,29 @@ export default function Home() {
                 transformOrigin: 'center'
               }}
             />
+            
+            {/* show media content if detected */}
+            {tweetData.mediaContent && tweetData.mediaContent.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <h4 className="text-gray-400 text-sm mb-2">
+                  detected media content:
+                </h4>
+                <div className="space-y-2">
+                  {tweetData.mediaContent.map((media, index) => (
+                    <div key={index} className="bg-gray-800 p-3 rounded text-xs">
+                      <span className="text-blue-400 font-medium">
+                        {media.type} {index + 1}:
+                      </span>
+                      {media.extractedText ? (
+                        <p className="text-gray-300 mt-1">"{media.extractedText}"</p>
+                      ) : (
+                        <p className="text-gray-500 mt-1 italic">no text detected</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -175,7 +199,7 @@ export default function Home() {
           <div className="bg-blue-900/50 border border-blue-500 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-center space-x-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
-              <p className="text-blue-200 font-medium">analyzing tweet with ai...</p>
+              <p className="text-blue-200 font-medium">analyzing tweet + media content with ai...</p>
             </div>
           </div>
         )}
@@ -191,14 +215,9 @@ export default function Home() {
               {/* sentiment */}
               <div>
                 <h4 className="text-gray-400 text-sm mb-2">sentiment:</h4>
-                <div className="flex items-center gap-3">
-                  <span className={`font-semibold text-lg ${getSentimentColor(analysis.sentiment)}`}>
-                    {analysis.sentiment}
-                  </span>
-                  <span className="text-gray-500 text-sm">
-                    ({Math.round(analysis.confidence * 100)}% confidence)
-                  </span>
-                </div>
+                <span className={`font-semibold text-lg ${getSentimentColor(analysis.sentiment)}`}>
+                  {analysis.sentiment}
+                </span>
               </div>
 
               {/* summary */}
