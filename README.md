@@ -1,5 +1,7 @@
 # AI Tweet Analyzer
 
+![AI Tweet Analyzer Logo](public/tweet_analyzer.png)
+
 A Next.js app that analyzes tweets using AI for sentiment and summary, saving results to Google Sheets.
 
 ## 🚀 Live Demo
@@ -65,6 +67,6 @@ npm run dev
 - Google Sheets API
 - Twitter oEmbed API
 
-```
+
 
 
