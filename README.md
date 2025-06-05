@@ -24,7 +24,7 @@ A Next.js app that analyzes tweets using AI for sentiment and summary, saving re
 1. **Clone & Install**
 ```bash
 git clone https://github.com/y4z1c1/ai-tweet-analyzer.git
-cd swipeline_case
+cd ai_tweet_analyzer
 npm install
 ```
 
