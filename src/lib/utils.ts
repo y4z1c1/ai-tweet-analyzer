@@ -1,7 +1,7 @@
 // utility functions for tweet url handling
 
 export function validateTweetUrl(url: string): boolean {
-  const tweetUrlPattern = /^https?:\/\/(twitter\.com|x\.com)\/\w+\/status\/\d+/
+  const tweetUrlPattern = /^https?:\/\/(twitter\.com|x\.com)\/[\w]+\/status\/\d+\/?$/
   return tweetUrlPattern.test(url)
 }
 

@@ -18,7 +18,7 @@ export default function Home() {
 
   // validate tweet url function
   const isValidTweetUrl = (url: string): boolean => {
-    const tweetUrlPattern = /^https?:\/\/(twitter\.com|x\.com)\/\w+\/status\/\d+/i
+    const tweetUrlPattern = /^https?:\/\/(twitter\.com|x\.com)\/[\w]+\/status\/\d+(?:\/)?(?:\?.*)?$/i
     return tweetUrlPattern.test(url.trim())
   }
 
